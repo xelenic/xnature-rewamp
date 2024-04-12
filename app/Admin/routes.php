@@ -25,6 +25,4 @@ Route::group([
     $router->resource('shops', ShopController::class);
     $router->resource('packets', \App\Admin\Controllers\PacketController::class);
 
-
-
 });

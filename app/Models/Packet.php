@@ -8,7 +8,4 @@ use Illuminate\Database\Eloquent\Model;
 class Packet extends Model
 {
     use HasFactory;
-    protected $casts = [
-      'status' => 'json',
-    ];
 }

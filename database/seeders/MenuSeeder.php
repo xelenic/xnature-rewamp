@@ -73,6 +73,16 @@ class MenuSeeder extends Seeder
                 'created_at' => '2024-04-03 08:11:09',
                 'updated_at' => '2024-04-03 08:11:09',
             ],
+
+            [
+                'parent_id' => 0,
+                'order' => 18,
+                'title' => 'Packets',
+                'icon' => 'icon-box',
+                'uri' => '/packets',
+                'created_at' => '2024-04-03 08:11:09',
+                'updated_at' => '2024-04-03 08:11:09',
+            ],
         ]);
     }
 }
