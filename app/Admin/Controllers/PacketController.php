@@ -49,10 +49,15 @@ class PacketController extends AdminController
         $show = new Show(Packet::findOrFail($id));
 
         $show->field('id', __('Id'));
-        $show->field('qr', __('Qr'));
+//        $show->field('qr', __('Qr'));
         $show->field('status', __('Status'));
         $show->field('created_at', __('Created at'));
         $show->field('updated_at', __('Updated at'));
+        $show->field("qr","QR")->unescape()->as(function ($url) {
+
+            return view('qr_code_functions.qr_code', ['qr' => $url]);
+
+        });
 
         return $show;
     }
@@ -80,42 +85,46 @@ class PacketController extends AdminController
 
         $form->saving(function (Form $form) {
 
-            // considering the packets quantity receive in the request need to be created
+            if($form->input('qty'))
+            {
+                for($i = 0; $i < (int) $form->input('qty'); $i++) {
 
-            $packet = new Packet();
-            $packet->qr = Uuid::uuid4()->toString();
-            $packet->status = 'active';
-            $packet->save();
+                    $packet = new Packet();
+                    $packet->qr = Uuid::uuid4()->toString();
+                    $packet->status = 'active';
+                    $packet->save();
 
-            if($form->input('packet_items')){
-                foreach($form->input('packet_items') as $key => $item){
-                    $mainStock = Item::where('color_id', $item['color'])
-                        ->where('size_id', $item['size'])
-                        ->where('style_id', $form->input('style'))
-                        ->first();
-                    if($mainStock == null)
-                    {
-                        $mainStockNewItem = new Item();
-                        $mainStockNewItem->color_id = $item['color'];
-                        $mainStockNewItem->size_id = $item['size'];
-                        $mainStockNewItem->style_id = $form->input('style');
-                        $mainStockNewItem->quantity = 0;
-                        $mainStockNewItem->price = 0;
-                        $mainStockNewItem->status = 'active';
-                        $mainStockNewItem->save();
-                    }else{
-                        $mainStockNewItem = $mainStock;
+                    if($form->input('packet_items')){
+                        foreach($form->input('packet_items') as $key => $item){
+                            $mainStock = Item::where('color_id', $item['color'])
+                                ->where('size_id', $item['size'])
+                                ->where('style_id', $form->input('style'))
+                                ->first();
+                            if($mainStock == null)
+                            {
+                                $mainStockNewItem = new Item();
+                                $mainStockNewItem->color_id = $item['color'];
+                                $mainStockNewItem->size_id = $item['size'];
+                                $mainStockNewItem->style_id = $form->input('style');
+                                $mainStockNewItem->quantity = 0;
+                                $mainStockNewItem->price = 0;
+                                $mainStockNewItem->status = 'active';
+                                $mainStockNewItem->save();
+                            }else{
+                                $mainStockNewItem = $mainStock;
+                            }
+
+                            $packetItem = new \App\Models\PacketItems();
+                            $packetItem->packet_id = $packet->id;
+                            $packetItem->item_id = $mainStockNewItem->id;
+                            $packetItem->quantity = $item['quantity'];
+                            $packetItem->status = 'active';
+                            $packetItem->save();
+                        }
                     }
-
-                    $packetItem = new \App\Models\PacketItems();
-                    $packetItem->packet_id = $packet->id;
-                    $packetItem->item_id = $mainStockNewItem->id;
-                    $packetItem->quantity = $item['quantity'];
-                    $packetItem->status = 'active';
-                    $packetItem->save();
                 }
+                return redirect('/admin/packets');
             }
-
         });
 
         $form->saved(function (Form $form) {
